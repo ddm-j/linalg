@@ -1,0 +1,15 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+        "name": "dev",
+        "displayName": "Development",
+        "binaryDir": "${sourceDir}/build",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "LINALG_BUILD_TEST": "ON",
+            "LINALG_BUILD_EXAMPLES": "ON"
+        }
+    }
+  ]
+}
