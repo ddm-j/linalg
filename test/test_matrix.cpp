@@ -3,7 +3,7 @@
 
 TEST(ArrayTest, TestMembers)
 {
-    linalg::Matrix mat { 1, 5 };
+    linalg::Matrix<int> mat { 1, 5, 2 };
     EXPECT_EQ(mat.rows(), 1);
     EXPECT_EQ(mat.cols(), 5);
 }
