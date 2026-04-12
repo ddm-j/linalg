@@ -5,6 +5,22 @@ target_sources(test_linalg
     test_matrix.cpp
 )
 
+if(ENABLE_COVERAGE)
+    find_program(LCOV lcov REQUIRED)
+    find_program(GENHTML genhtml REQUIRED)
+
+    target_compile_options(test_linalg PRIVATE --coverage -O0)
+    target_link_options(test_linalg PRIVATE --coverage)
+
+    add_custom_target(coverage
+        COMMAND ${LCOV} --directory . --capture --output-file coverage.info --ignore-errors mismatch
+        COMMAND ${LCOV} --remove coverage.info '/usr/*' '*/googletest/*' --output-file coverage_filtered.info --ignore-errors mismatch
+        COMMAND ${GENHTML} --demangle-cpp -o coverage coverage_filtered.info
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS test_linalg
+    )
+endif()
+
 target_compile_features(test_linalg PRIVATE cxx_std_17)
 
 include(FetchContent)
