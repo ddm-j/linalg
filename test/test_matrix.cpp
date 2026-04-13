@@ -99,6 +99,28 @@ TEST(Semantics, MoveAssignmentOperator)
 }
 
 //==============================================================================
+// STATICS
+//==============================================================================
+TEST(Statics, Ones)
+{
+    using size_type = Matrix<int>::size_type;
+    Matrix<int> ones { Matrix<int>::ones(3, 3) };
+    for (size_type i { 0 }; i < ones.length(); ++i)
+    {
+        EXPECT_EQ(ones[i], 1);
+    }
+}
+
+TEST(Statics, Eye)
+{
+    using size_type = Matrix<int>::size_type;
+    Matrix<int> eye { Matrix<int>::eye(3, 4) };
+    EXPECT_EQ((eye[0, 0]), 1);
+    EXPECT_EQ((eye[1, 1]), 1);
+    EXPECT_EQ((eye[2, 2]), 1);
+}
+
+//==============================================================================
 // UTILITY
 //==============================================================================
 TEST(Utility, Accessors)
@@ -111,11 +133,30 @@ TEST(Utility, Accessors)
     EXPECT_EQ(a.length(), 4);
 }
 
-TEST(Utility, BracketOperators)
+TEST(Utility, BracketOperator)
 {
     Matrix<int> a {{1, 2}, {3, 4}};
+    
+    // Non Const
     // Dual Bracket
     EXPECT_EQ((a[0, 1]), 2);
+    a[0, 1] = 3;
+    EXPECT_EQ((a[0, 1]), 3);
+
+    // Single Bracket
+    EXPECT_EQ((a[1]), 3);
+    a[1] = 2;
+    EXPECT_EQ((a[1]), 2);
+}
+
+TEST(Utility, BracketOperatorConst)
+{
+    const Matrix<int> a {{1, 2}, {3, 4}};
+    
+    // Const
+    // Dual Bracket
+    EXPECT_EQ((a[0, 1]), 2);
+
     // Single Bracket
     EXPECT_EQ((a[1]), 2);
 }
@@ -283,4 +324,59 @@ TEST_F(Arithmetic, ScalarSubtraction)
     AopV = A - V;
     for (Matrix<int>::size_type i = 0; i < A.length(); ++i)
         EXPECT_EQ(A[i]-V, AopV[i]);
+}
+
+//==============================================================================
+// VIEWS
+//==============================================================================
+class View : public testing::Test
+{
+protected:
+    View()
+    {
+    }
+    Matrix<int> A {{1,2},{3,4}};
+    const Matrix<int> B {{1,2},{3,4}};
+
+    Matrix<int> C {{1,2,3},{4,5,6}};
+    const Matrix<int> D {{1,2,3},{4,5,6}};
+};
+
+TEST_F(View, Rows)
+{
+    auto v { A.rowit(0) };
+    EXPECT_EQ(v[0], 1);
+    EXPECT_EQ(v[1], 2);
+    v[1] = 3;
+    EXPECT_EQ(v[1], 3);
+
+    auto vConst { B.rowit(0) };
+    EXPECT_EQ(vConst[0], 1);
+    EXPECT_EQ(vConst[1], 2);
+}
+
+TEST_F(View, Columns)
+{
+    auto v { A.colit(0) };
+    EXPECT_EQ(v[0], 1);
+    EXPECT_EQ(v[1], 3);
+    v[1] = 5;
+    EXPECT_EQ(v[1], 5);
+
+    auto vConst { B.colit(0) };
+    EXPECT_EQ(vConst[0], 1);
+    EXPECT_EQ(vConst[1], 3);
+}
+
+TEST_F(View, Diagonal)
+{
+    auto v { C.diagit() };
+    EXPECT_EQ(v[0], 1);
+    EXPECT_EQ(v[1], 5);
+    v[1] = 3;
+    EXPECT_EQ(v[1], 3);
+
+    auto vConst { D.diagit() };
+    EXPECT_EQ(vConst[0], 1);
+    EXPECT_EQ(vConst[1], 5);
 }

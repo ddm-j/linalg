@@ -1,0 +1,75 @@
+#ifndef STRIDE_VIEW_H
+#define STRIDE_VIEW_H
+
+#include <compare>
+
+namespace linalg {
+
+template <typename T>
+class StrideIterator
+{
+public:
+    using size_type = std::ptrdiff_t;
+
+    StrideIterator(size_type stride, T* ptr)
+        : m_stride { stride }
+        , m_ptr { ptr }
+    {}
+
+    // Arithmetic Operators
+    T& operator*() const { return *m_ptr; };
+    StrideIterator operator+(size_type n) const { return StrideIterator(m_stride, m_ptr + n*m_stride); }
+    StrideIterator operator-(size_type n) const { return StrideIterator(m_stride, m_ptr - n*m_stride); }
+    size_type operator-(const StrideIterator<T>& other) const { return m_ptr - other.m_ptr; }
+    StrideIterator& operator++() { m_ptr += m_stride; return *this; }
+    StrideIterator operator++(int) { StrideIterator<T> temp{*this}; m_ptr += m_stride; return temp; }
+    StrideIterator& operator--() { m_ptr -= m_stride; return *this; }
+    StrideIterator operator--(int) { StrideIterator<T> temp{*this}; m_ptr -= m_stride; return temp; }
+
+    // Access
+    T& operator[](size_type n) const { return *(m_ptr + n*m_stride); }
+    size_type getStride() const { return m_stride; }
+    T* getPtr() const { return m_ptr; }
+
+    // Comparison (weak ordering because different stride makes objects non sub)
+    std::weak_ordering operator<=>(const StrideIterator<T>& other) const { return m_ptr <=> other.m_ptr; }
+    bool operator==(const StrideIterator<T>& other) const { return m_ptr == other.m_ptr; }
+
+    std::weak_ordering operator<=>(const T* other) const { return m_ptr <=> other; }
+    bool operator==(const T* other) const { return m_ptr == other; }
+
+private:
+    size_type m_stride {};
+    T* m_ptr { nullptr };
+};
+
+template <typename T>
+class StrideView
+{
+public:
+    using size_type = StrideIterator<T>::size_type;
+
+    StrideView(T* ptr, size_type stride, size_type count)
+        : m_ptr { ptr }
+        , m_stride { stride }
+        , m_count { count }
+    {}
+
+    StrideIterator<T> begin() const { return StrideIterator<T>(m_stride, m_ptr); }
+    StrideIterator<T> end() const { return StrideIterator<T>(m_stride, m_ptr + m_stride*m_count); }
+
+    // Access
+    T* getPtr() const { return m_ptr; }
+    size_type getStride() const { return m_stride; }
+    size_type getCount() const { return m_count; }
+    T& operator[](size_type n) const { return *(m_ptr + n*m_stride); }
+
+private:
+    T* m_ptr {nullptr};
+    size_type m_stride {};
+    size_type m_count {};
+};
+
+}
+
+#endif // STRIDE_VIEW_H

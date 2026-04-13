@@ -5,6 +5,7 @@ target_sources(linalg
     FILE_SET HEADERS
     FILES
         linalg/Matrix.h
+        linalg/stride_view.h
 )
 
 target_compile_features(linalg INTERFACE cxx_std_23)

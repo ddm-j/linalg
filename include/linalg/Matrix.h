@@ -7,6 +7,7 @@
 #include <initializer_list>
 #include <exception>
 #include <iostream>
+#include <linalg/stride_view.h>
 
 namespace linalg {
 
@@ -57,6 +58,7 @@ class Matrix
 {
 public:
     using size_type = std::size_t;
+    using ptr_diff = StrideView<T>::size_type;
 
     // RAII
     // // Constructor(s)
@@ -73,6 +75,10 @@ public:
     Matrix(Matrix<T>&& mat) noexcept;
     // // Move Assignment Operator
     Matrix<T>& operator=(Matrix<T>&& mat) noexcept;
+
+    // Statics
+    static Matrix<T> ones(size_type rows, size_type cols);
+    static Matrix<T> eye(size_type rows, size_type cols);
 
     // General Utility
     size_type rows() const { return m_rows; }
@@ -95,6 +101,18 @@ public:
     Matrix<T> operator-() const { return operator*(-1, *this); }
     Matrix<T>& operator+=(const Matrix<T>& rhs);
     Matrix<T>& operator-=(const Matrix<T>& rhs);
+
+    // Row View
+    StrideView<T> rowit(size_type i) { return StrideView<T>(m_arr.get() + i*m_cols, 1, m_cols); }
+    StrideView<const T> rowit(size_type i) const { return StrideView<const T>(m_arr.get() + i*m_cols, 1, m_cols); }
+
+    // Column View
+    StrideView<T> colit(size_type j) { return StrideView<T>(m_arr.get() + j, m_cols, m_rows); }
+    StrideView<const T> colit(size_type j) const { return StrideView<const T>(m_arr.get() + j, m_cols, m_rows); }
+
+    // Diagonal View
+    StrideView<T> diagit() { return StrideView<T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
+    StrideView<const T> diagit() const { return StrideView<const T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
 
 private:
     // Data Members
@@ -211,6 +229,24 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
     {
         std::copy_n((list.begin()+i)->begin(), m_cols, m_arr.get()+i*m_cols);
     }
+}
+
+// Static Functions
+template <typename T>
+Matrix<T> Matrix<T>::ones(size_type rows, size_type cols)
+{
+    Matrix<T> out(rows, cols);
+    std::fill(out.begin(), out.end(), T(1));
+    return out;
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::eye(size_type rows, size_type cols)
+{
+    Matrix<T> out(rows, cols);
+    auto diag { out.diagit() };
+    std::fill(diag.begin(), diag.end(), T(1));
+    return out;
 }
 
 // Member Operators

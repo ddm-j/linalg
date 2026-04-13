@@ -3,6 +3,7 @@ add_executable(test_linalg)
 target_sources(test_linalg
     PRIVATE
     test_matrix.cpp
+    test_strideview.cpp
 )
 
 if(ENABLE_COVERAGE)
