@@ -7,6 +7,8 @@
 #include <initializer_list>
 #include <exception>
 #include <iostream>
+#include <iomanip>
+#include <numeric>
 #include <linalg/stride_view.h>
 
 namespace linalg {
@@ -65,6 +67,7 @@ public:
     Matrix(size_type rows, size_type cols);
     Matrix(std::initializer_list<T> list);
     Matrix(std::initializer_list<std::initializer_list<T>> list);
+    Matrix(size_type rows, size_type cols, std::initializer_list<T> list);
     // // Destructor
     ~Matrix();
     // // Copy Constructor
@@ -231,6 +234,16 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
     }
 }
 
+template <typename T>
+Matrix<T>::Matrix(size_type rows, size_type cols, std::initializer_list<T> list)
+    : Matrix<T>::Matrix(rows, cols)
+{
+    if (rows*cols != list.size())
+        throw std::invalid_argument("initializer list size does not match rows*cols");
+
+    std::copy(list.begin(), list.end(), m_arr.get());
+}
+
 // Static Functions
 template <typename T>
 Matrix<T> Matrix<T>::ones(size_type rows, size_type cols)
@@ -301,19 +314,39 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const Matrix<T>& mat)
 {
     using size_type = Matrix<T>::size_type;
+    out << std::fixed << std::setprecision(3);
 
-    size_type j {0};
     size_type length { mat.length() };
     size_type cols { mat.cols() };
+
+    // Find Max Width Column
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(3);
+    int width { std::accumulate(
+        mat.begin(),
+        mat.end(),
+        0,
+        [&oss](int w, const auto& v)
+        {
+            oss.str("");
+            oss << v;
+            if (int a {static_cast<int>(oss.str().size())}; a > w)
+                w = a;
+            return w;
+        }
+    ) };
+    width += 2;
+
+    size_type j {0};
     for (size_type lidx {0}; lidx < length; ++lidx)
     {
         j = mat.cidx(lidx);
-        if (j != 0)
-            out << "\t";
-        out << mat[lidx]; 
+        out << std::setw(width) << mat[lidx]; 
         if (j == (cols - 1))
             out << "\n";
     }
+
+    out << std::fixed;
     return out;
 }
 
@@ -454,6 +487,45 @@ template <typename T>
 Matrix<T> operator-(T v, const Matrix<T>& rhs) { return operator+(v, -rhs); }
 template <typename T>
 Matrix<T> operator-(const Matrix<T>& lhs, T v) { return operator+(-v, lhs); }
+
+//==============================================================================
+// NON MEMBER / NON FRIEND UTILITIES
+//==============================================================================
+template <typename T>
+bool is_lowertri(const Matrix<T>& A, int fac = 100)
+{
+    using size_type = Matrix<T>::size_type;
+    size_type rows { A.rows() };
+    size_type cols { A.cols() };
+    T eps { fac * std::numeric_limits<T>::epsilon() };
+    for (size_type i {0}; i < std::min(rows, cols); ++i)
+    {
+        for (size_type j {i + 1}; j < cols; ++j)
+        {
+            if (std::abs(A[i, j]) > eps)
+                return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+bool is_uppertri(const Matrix<T>& A, int fac = 100)
+{
+    using size_type = Matrix<T>::size_type;
+    size_type rows { A.rows() };
+    size_type cols { A.cols() };
+    T eps { fac * std::numeric_limits<T>::epsilon() };
+    for (size_type i {0}; i < std::min(rows, cols); ++i)
+    {
+        for (size_type j {0}; j < i; ++j)
+        {
+            if (std::abs(A[i, j]) > eps)
+                return false;
+        }
+    }
+    return true;
+}
 
 } // end namespace linalg
 

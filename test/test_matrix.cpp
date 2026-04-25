@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <climits>
 #include <linalg/Matrix.h>
 #include <gtest/gtest.h>
 
@@ -47,6 +48,20 @@ TEST(Construction, JaggedListThrows)
     EXPECT_THROW((Matrix<int>{{ 1, 2, 3, 4, 5 },{ 6, 7, 8, 9}}), std::invalid_argument);
 }
 
+TEST(Construction, DimsListConstructor)
+{
+    Matrix<int> m(2, 5, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+    EXPECT_EQ(m.rows(), 2);
+    EXPECT_EQ(m.cols(), 5);
+    EXPECT_EQ(m.length(), 10);
+    EXPECT_EQ(m[9], 10);
+    EXPECT_EQ((m[0,4]), 5);
+}
+
+TEST(Construction, DimsListConstructorThrows)
+{
+    EXPECT_THROW((Matrix<int>(2, 5, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})), std::invalid_argument);
+}
 //==============================================================================
 // SEMANTICS
 //==============================================================================
@@ -379,4 +394,45 @@ TEST_F(View, Diagonal)
     auto vConst { D.diagit() };
     EXPECT_EQ(vConst[0], 1);
     EXPECT_EQ(vConst[1], 5);
+}
+
+//==============================================================================
+// NON MEMBER - NON FRIEND UTILTIES
+//==============================================================================
+TEST(Utilities, IsLowerTriangular)
+{
+    // Test True
+    Matrix<double> A {
+        {1, 0, 99*std::numeric_limits<double>::epsilon()},
+        {0.5, 0, 0},
+        {0.2, -0.1, 1}
+    };
+    EXPECT_TRUE((linalg::is_lowertri(A,100)));
+
+    // Test False
+    Matrix<double> B {
+        {1, 0, 101*std::numeric_limits<double>::epsilon()},
+        {0.5, 0, 0},
+        {0.2, -0.1, 1}
+    };
+    EXPECT_FALSE((linalg::is_lowertri(B,100)));
+}
+
+TEST(Utilities, IsUpperTriangular)
+{
+    // Test True
+    Matrix<double> A {
+        {1, -0.1, 2.0},
+        {0, 0, 0.5},
+        {99*std::numeric_limits<double>::epsilon(), 0, 1}
+    };
+    EXPECT_TRUE((linalg::is_uppertri(A,100)));
+
+    // Test False
+    Matrix<double> B {
+        {1, -0.1, 2.0},
+        {0, 0, 0.5},
+        {101*std::numeric_limits<double>::epsilon(), 0, 1}
+    };
+    EXPECT_FALSE((linalg::is_uppertri(B,100)));
 }

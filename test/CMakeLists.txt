@@ -4,6 +4,8 @@ target_sources(test_linalg
     PRIVATE
     test_matrix.cpp
     test_strideview.cpp
+    test_decomposition.cpp
+    test_solvers.cpp
 )
 
 if(ENABLE_COVERAGE)

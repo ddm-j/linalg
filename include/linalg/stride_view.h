@@ -9,26 +9,29 @@ template <typename T>
 class StrideIterator
 {
 public:
-    using size_type = std::ptrdiff_t;
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
 
-    StrideIterator(size_type stride, T* ptr)
+    StrideIterator() = default;
+
+    StrideIterator(difference_type stride, T* ptr)
         : m_stride { stride }
         , m_ptr { ptr }
     {}
 
     // Arithmetic Operators
     T& operator*() const { return *m_ptr; };
-    StrideIterator operator+(size_type n) const { return StrideIterator(m_stride, m_ptr + n*m_stride); }
-    StrideIterator operator-(size_type n) const { return StrideIterator(m_stride, m_ptr - n*m_stride); }
-    size_type operator-(const StrideIterator<T>& other) const { return m_ptr - other.m_ptr; }
+    StrideIterator operator+(difference_type n) const { return StrideIterator(m_stride, m_ptr + n*m_stride); }
+    StrideIterator operator-(difference_type n) const { return StrideIterator(m_stride, m_ptr - n*m_stride); }
+    difference_type operator-(const StrideIterator<T>& other) const { return m_ptr - other.m_ptr; }
     StrideIterator& operator++() { m_ptr += m_stride; return *this; }
     StrideIterator operator++(int) { StrideIterator<T> temp{*this}; m_ptr += m_stride; return temp; }
     StrideIterator& operator--() { m_ptr -= m_stride; return *this; }
     StrideIterator operator--(int) { StrideIterator<T> temp{*this}; m_ptr -= m_stride; return temp; }
 
     // Access
-    T& operator[](size_type n) const { return *(m_ptr + n*m_stride); }
-    size_type getStride() const { return m_stride; }
+    T& operator[](difference_type n) const { return *(m_ptr + n*m_stride); }
+    difference_type getStride() const { return m_stride; }
     T* getPtr() const { return m_ptr; }
 
     // Comparison (weak ordering because different stride makes objects non sub)
@@ -39,7 +42,7 @@ public:
     bool operator==(const T* other) const { return m_ptr == other; }
 
 private:
-    size_type m_stride {};
+    difference_type m_stride {};
     T* m_ptr { nullptr };
 };
 
@@ -47,7 +50,7 @@ template <typename T>
 class StrideView
 {
 public:
-    using size_type = StrideIterator<T>::size_type;
+    using size_type = StrideIterator<T>::difference_type;
 
     StrideView(T* ptr, size_type stride, size_type count)
         : m_ptr { ptr }
