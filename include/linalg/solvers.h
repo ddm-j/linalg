@@ -81,7 +81,7 @@ Matrix<T> solve_lu(const Matrix<T>& A, const Matrix<T>& b)
     if (cols != b.rows())
         throw linalg::ShapeError("solve_lu(): Matrix b must have same number of rows as A has columns.");
     if (b.cols() > 1)
-        throw linalg::ShapeError("solve_lu(): Matrix b cannot have more than one columns");
+        throw linalg::ShapeError("solve_lu(): Matrix b cannot have more than one column");
 
     // LU Decomp
     auto [ P, L, U ] { linalg::decomposition::lu(A) };
@@ -100,6 +100,33 @@ Matrix<T> solve_lu(const Matrix<T>& A, const Matrix<T>& b)
 
     // Backward Substitution
     Matrix<T> x { backward_sub(U, y)};
+
+    return x;
+}
+
+template <typename T>
+Matrix<T> solve_cholesky(const Matrix<T>& A, const Matrix<T>& b)
+{
+    using size_type = Matrix<T>::size_type;
+    size_type rows = A.rows();
+    size_type cols = A.cols();
+
+    // Size Checking
+    if (rows != cols)
+        throw linalg::ShapeError("solve_lu(): Matrix A must be square.");
+    if (cols != b.rows())
+        throw linalg::ShapeError("solve_lu(): Matrix b must have same number of rows as A has columns.");
+    if (b.cols() > 1)
+        throw linalg::ShapeError("solve_lu(): Matrix b cannot have more than one column");
+
+    // Decompose
+    auto L { linalg::decomposition::cholesky(A) };
+
+    // Forward Substitution
+    Matrix<T> y { forward_sub(L, b) };
+
+    // Backward Substitution
+    Matrix<T> x { backward_sub(Matrix<T>(L.transpose()), y) };
 
     return x;
 }

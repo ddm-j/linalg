@@ -36,3 +36,5 @@ build/
 *.app
 # debug information files
 *.dwo
+# Very Specific shit
+TODO.md

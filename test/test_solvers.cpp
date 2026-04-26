@@ -188,3 +188,71 @@ TEST(LUSolver, Identity)
     // Result Check
     test_ranges_equal(b.colit(0), b_res.colit(0));
 }
+
+//==============================================================================
+// Cholesky Solver
+//==============================================================================
+TEST(CholeskySover, NonSquareMatrixThrows)
+{
+    Matrix<double> A {
+        { 4, 1, 2 },
+        { 1, 5, 1 },
+    };
+    Matrix<double> b(3, 1, {1, 2, 3});
+    EXPECT_THROW((solve_cholesky(A, b)), linalg::ShapeError);
+}
+
+TEST(CholeskySover, VectorLengthMismatchThrows)
+{
+    Matrix<double> A {
+        { 4, 1, 2 },
+        { 1, 5, 1 },
+        { 1, 2, 3 }
+    };
+    Matrix<double> b(4, 1, {1, 2, 3, 4});
+    EXPECT_THROW((solve_cholesky(A, b)), linalg::ShapeError);
+}
+
+TEST(CholeskySover, VectorIsMatrixThrows)
+{
+    Matrix<double> A {
+        { 4, 1, 2 },
+        { 1, 5, 1 },
+        { 1, 2, 3 }
+    };
+    Matrix<double> b(3, 2, {1, 2, 3, 4, 5, 6});
+    EXPECT_THROW((solve_cholesky(A, b)), linalg::ShapeError);
+}
+
+TEST(CholeskySover, Identity)
+{
+    auto I { Matrix<double>::eye(3, 3) };
+    Matrix<double> b(3, 1, {1, 2, 3});
+    auto b_res { solve_cholesky(I, b) };
+
+    // Shape Check
+    EXPECT_EQ(b.rows(), b_res.rows());
+    EXPECT_EQ(b.cols(), b_res.cols());
+
+    // Result Check
+    test_ranges_equal(b.colit(0), b_res.colit(0));
+}
+
+TEST(CholeskySover, IsCorrect)
+{
+    Matrix<double> A {
+        {6, 3, 4, 8},
+        {3, 6, 5, 1},
+        {4, 5,10, 7},
+        {8, 1, 7,25}
+    };
+    Matrix<double> x(4, 1, {1, 2, 3, 4});
+    auto x_sol { solve_cholesky(A, A*x) };
+
+    // Shape Check
+    EXPECT_EQ(x.rows(), x_sol.rows());
+    EXPECT_EQ(x.cols(), x_sol.cols());
+
+    // Result Check
+    test_ranges_equal(x.colit(0), x_sol.colit(0));
+}

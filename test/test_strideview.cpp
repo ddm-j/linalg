@@ -1,12 +1,15 @@
 #include <cstddef>
 #include <linalg/stride_view.h>
+#include <linalg/Matrix.h>
 #include <gtest/gtest.h>
 
 using linalg::StrideIterator;
 using linalg::StrideView;
+using linalg::MatrixView;
 
 template class StrideIterator<int>;
 template class StrideView<int>;
+template class MatrixView<int>;
 
 //==============================================================================
 // STRIDE ITERATOR

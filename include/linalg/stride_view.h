@@ -90,7 +90,7 @@ public:
         , m_row_stride { row_stride }
         , m_col_stride { col_stride }
     {}
-    MatrixView(linalg::Matrix<T>& mat)
+    explicit MatrixView(linalg::Matrix<T>& mat)
         : MatrixView(mat.begin(), mat.rows(), mat.cols(), mat.cols(), 1)
     {}
 

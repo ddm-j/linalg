@@ -72,7 +72,8 @@ public:
     Matrix(std::initializer_list<T> list);
     Matrix(std::initializer_list<std::initializer_list<T>> list);
     Matrix(size_type rows, size_type cols, std::initializer_list<T> list);
-    Matrix(const MatrixView<T>& view);
+    template <typename U>
+    Matrix(const MatrixView<U>& view); // Allow conversion from view
     // // Destructor
     ~Matrix();
     // // Copy Constructor
@@ -84,9 +85,6 @@ public:
     // // Move Assignment Operator
     Matrix<T>& operator=(Matrix<T>&& mat) noexcept;
 
-    // Allow Implicit Conversion to View
-    operator MatrixView<T>() const { return MatrixView<T>(m_arr.get(), m_rows, m_cols, m_cols, 1); }
-
     // Statics
     static Matrix<T> ones(size_type rows, size_type cols);
     static Matrix<T> eye(size_type rows, size_type cols);
@@ -97,7 +95,8 @@ public:
     size_type ridx(size_type lidx) const { return lidx / m_cols; }
     size_type cidx(size_type lidx) const { return lidx % m_cols; }
     size_type length() const { return m_length; }
-    Matrix<T> transpose() const;
+    MatrixView<T> transpose() { return MatrixView<T>(begin(), m_cols, m_rows, 1, m_cols); }
+    MatrixView<const T> transpose() const { return MatrixView<const T>(begin(), m_cols, m_rows, 1, m_cols); }
 
     // Member Functions
     T* begin() { return m_arr.get(); }
@@ -127,6 +126,28 @@ public:
     StrideView<const T> diagit() const { return StrideView<const T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
 
     // Hidden Friends
+    // // Equality
+    friend bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs)
+    {
+        if (lhs.rows() != rhs.rows())
+            return false;
+        if (lhs.cols() != rhs.cols())
+            return false;
+
+        T eps { 10 * std::numeric_limits<T>::epsilon() };
+        for (auto&& [a, b] : std::views::zip(lhs, rhs))
+        {
+            if (std::abs(a - b) > eps)
+                return false;
+        }
+        return true;
+    }
+    // // Inequality
+    friend bool operator!=(const Matrix<T>& lhs, const Matrix<T>& rhs)
+    {
+        return !operator==(rhs, lhs);
+    }
+
     // // Matrix Addition
     friend Matrix<T> operator+(const Matrix<T>& lhs, const Matrix<T>& rhs)
     {
@@ -382,7 +403,8 @@ Matrix<T>::Matrix(size_type rows, size_type cols, std::initializer_list<T> list)
 }
 
 template <typename T>
-Matrix<T>::Matrix(const MatrixView<T>& view)
+template <typename U>
+Matrix<T>::Matrix(const MatrixView<U>& view)
     : Matrix<T>::Matrix(view.rows(), view.cols())
 {
     for (size_type i {0}; i < m_length; ++i)
@@ -407,19 +429,6 @@ Matrix<T> Matrix<T>::eye(size_type rows, size_type cols)
     auto diag { out.diagit() };
     std::fill(diag.begin(), diag.end(), T(1));
     return out;
-}
-
-// General Utilitiy
-template <typename T>
-Matrix<T> Matrix<T>::transpose() const {
-    Matrix<T> trans(m_cols, m_rows);
-    for (size_type j {0}; j < m_cols; ++j)
-    {
-        auto c { colit(j) };
-        auto r { trans.rowit(j) };
-        std::copy(c.begin(), c.end(), r.begin());
-    }
-    return trans;
 }
 
 // Member Operators
@@ -459,25 +468,6 @@ Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& rhs)
         }
     );
     return *this;
-}
-
-template <typename T>
-bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs)
-{
-    if (lhs.rows() != rhs.rows())
-        return false;
-    if (lhs.cols() != rhs.cols())
-        return false;
-    
-    T eps { 10 * std::numeric_limits<T>::epsilon() };
-    for (auto&& [a, b] : std::views::zip(lhs, rhs))
-    {
-        if (std::abs(a - b) > eps)
-            return false;
-    }
-    
-
-    return true;
 }
 
 // Utility

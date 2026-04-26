@@ -12,6 +12,7 @@ int main()
         {6, 3, 4, 8},
         {3, 6, 5, 1},
         {4, 5,10, 7},
+        {8, 1, 7,25}
     };
 
     // linalg::MatrixView<double> view { A }; 
