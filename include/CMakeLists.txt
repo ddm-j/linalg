@@ -6,6 +6,7 @@ target_sources(linalg
     FILES
         linalg/Matrix.h
         linalg/stride_view.h
+        linalg/errors.h
         linalg/decomposition.h
         linalg/solvers.h
 )

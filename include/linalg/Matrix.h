@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include <numeric>
+#include <ranges>
 #include <linalg/stride_view.h>
 
 namespace linalg {
@@ -52,6 +53,9 @@ Matrix<T> operator-(T v, const Matrix<T>& rhs);
 template <typename T>
 Matrix<T> operator-(const Matrix<T>& lhs, T v);
 
+template <typename T>
+bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs);
+
 //==============================================================================
 // CLASS DEFINITION
 //==============================================================================
@@ -68,6 +72,7 @@ public:
     Matrix(std::initializer_list<T> list);
     Matrix(std::initializer_list<std::initializer_list<T>> list);
     Matrix(size_type rows, size_type cols, std::initializer_list<T> list);
+    Matrix(const MatrixView<T>& view);
     // // Destructor
     ~Matrix();
     // // Copy Constructor
@@ -79,6 +84,9 @@ public:
     // // Move Assignment Operator
     Matrix<T>& operator=(Matrix<T>&& mat) noexcept;
 
+    // Allow Implicit Conversion to View
+    operator MatrixView<T>() const { return MatrixView<T>(m_arr.get(), m_rows, m_cols, m_cols, 1); }
+
     // Statics
     static Matrix<T> ones(size_type rows, size_type cols);
     static Matrix<T> eye(size_type rows, size_type cols);
@@ -89,6 +97,7 @@ public:
     size_type ridx(size_type lidx) const { return lidx / m_cols; }
     size_type cidx(size_type lidx) const { return lidx % m_cols; }
     size_type length() const { return m_length; }
+    Matrix<T> transpose() const;
 
     // Member Functions
     T* begin() { return m_arr.get(); }
@@ -116,6 +125,134 @@ public:
     // Diagonal View
     StrideView<T> diagit() { return StrideView<T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
     StrideView<const T> diagit() const { return StrideView<const T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
+
+    // Hidden Friends
+    // // Matrix Addition
+    friend Matrix<T> operator+(const Matrix<T>& lhs, const Matrix<T>& rhs)
+    {
+        if (incompatibleDims(lhs, rhs))
+        {
+            throw std::invalid_argument("Matrix dimensions incompatible for addition.");
+        }
+        Matrix<T> out(rhs.rows(), rhs.cols());
+        std::transform(
+            lhs.begin(), lhs.end(),
+            rhs.begin(),
+            out.begin(),
+            [] (const auto& a, const auto& b)
+            {
+                return a + b;
+            }
+        );
+        return out;
+    }
+
+    // // Matrix Subtraction
+    friend Matrix<T> operator-(const Matrix<T>& lhs, const Matrix<T>& rhs)
+    {
+        if (incompatibleDims(lhs, rhs))
+        {
+            throw std::invalid_argument("Matrix dimensions incompatible for subtraction.");
+        }
+        Matrix<T> out(rhs.rows(), rhs.cols());
+        std::transform(
+            lhs.begin(), lhs.end(),
+            rhs.begin(),
+            out.begin(),
+            [] (const auto& a, const auto& b)
+            {
+                return a - b;
+            }
+        );
+        return out;
+    }
+
+    // // Matrix Multiplication
+    friend Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs)
+    {
+        if (incompatibleDims(lhs, rhs, true))
+        {
+            throw std::invalid_argument("Matrix dimensions incompatible for multiplication.");
+        }
+        Matrix<T> out(lhs.rows(), rhs.cols());
+
+        // For each element in out:
+        // // Compute i, j of the output matrix
+        // // Dot lhs[i, :] with rhs[:, j]
+        using size_type = Matrix<T>::size_type;
+        size_type ridx {0};
+        size_type cidx {0};
+        size_type length { out.length() };
+        size_type inner { lhs.cols() };
+        T sum { }; // Should zero initialize
+        for (size_type l {0}; l < length; ++l)
+        {
+            ridx = out.ridx(l);
+            cidx = out.cidx(l);
+            sum = T{};
+            for (size_type i {0}; i < inner; ++i)
+            {
+                sum += lhs[ridx, i] * rhs[i, cidx];
+            }
+            out[ridx, cidx] = sum;
+        }
+        return out;
+    }
+
+    // // Scalar Multiplication
+    friend Matrix<T> operator*(T v, const Matrix<T>& rhs)
+    {
+        Matrix<T> out(rhs.rows(), rhs.cols());
+        std::transform(
+            rhs.begin(), rhs.end(),
+            out.begin(),
+            [v] (const auto& a)
+            {
+                return a*v;
+            }
+        );
+        return out;
+    }
+    friend Matrix<T> operator*(const Matrix<T>& lhs, T v) { return operator*(v, lhs); }
+
+    // // Scalar Division
+    friend Matrix<T> operator/(const Matrix<T>& lhs, T v)
+    {
+        if (v == T())
+        {
+            throw std::invalid_argument("Division by zero not allowed.");
+        }
+        Matrix<T> out(lhs.rows(), lhs.cols());
+        std::transform(
+            lhs.begin(), lhs.end(),
+            out.begin(),
+            [v] (const auto& a)
+            {
+                return a/v;
+            }
+        );
+        return out;
+    }
+
+    // // Scalar Addition
+    friend Matrix<T> operator+(T v, const Matrix<T>& rhs)
+    {
+        Matrix<T> out(rhs.rows(), rhs.cols());
+        std::transform(
+            rhs.begin(), rhs.end(),
+            out.begin(),
+            [v] (const auto& a)
+            {
+                return a+v;
+            }
+        );
+        return out;
+    }
+    friend Matrix<T> operator+(const Matrix<T>& lhs, T v) { return operator+(v, lhs); }
+
+    // // Scalar Subtraction
+    friend Matrix<T> operator-(T v, const Matrix<T>& rhs) { return operator+(v, -rhs); }
+    friend Matrix<T> operator-(const Matrix<T>& lhs, T v) { return operator+(-v, lhs); }
 
 private:
     // Data Members
@@ -244,6 +381,16 @@ Matrix<T>::Matrix(size_type rows, size_type cols, std::initializer_list<T> list)
     std::copy(list.begin(), list.end(), m_arr.get());
 }
 
+template <typename T>
+Matrix<T>::Matrix(const MatrixView<T>& view)
+    : Matrix<T>::Matrix(view.rows(), view.cols())
+{
+    for (size_type i {0}; i < m_length; ++i)
+    {
+        m_arr[i] = view[i];
+    }
+}
+
 // Static Functions
 template <typename T>
 Matrix<T> Matrix<T>::ones(size_type rows, size_type cols)
@@ -260,6 +407,19 @@ Matrix<T> Matrix<T>::eye(size_type rows, size_type cols)
     auto diag { out.diagit() };
     std::fill(diag.begin(), diag.end(), T(1));
     return out;
+}
+
+// General Utilitiy
+template <typename T>
+Matrix<T> Matrix<T>::transpose() const {
+    Matrix<T> trans(m_cols, m_rows);
+    for (size_type j {0}; j < m_cols; ++j)
+    {
+        auto c { colit(j) };
+        auto r { trans.rowit(j) };
+        std::copy(c.begin(), c.end(), r.begin());
+    }
+    return trans;
 }
 
 // Member Operators
@@ -299,6 +459,25 @@ Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& rhs)
         }
     );
     return *this;
+}
+
+template <typename T>
+bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs)
+{
+    if (lhs.rows() != rhs.rows())
+        return false;
+    if (lhs.cols() != rhs.cols())
+        return false;
+    
+    T eps { 10 * std::numeric_limits<T>::epsilon() };
+    for (auto&& [a, b] : std::views::zip(lhs, rhs))
+    {
+        if (std::abs(a - b) > eps)
+            return false;
+    }
+    
+
+    return true;
 }
 
 // Utility
@@ -349,144 +528,6 @@ std::ostream& operator<<(std::ostream& out, const Matrix<T>& mat)
     out << std::fixed;
     return out;
 }
-
-// Arithmetic Operators
-// // Matrix Addition
-template <typename T>
-Matrix<T> operator+(const Matrix<T>& lhs, const Matrix<T>& rhs)
-{
-    if (incompatibleDims(lhs, rhs))
-    {
-        throw std::invalid_argument("Matrix dimensions incompatible for addition.");
-    }
-    Matrix<T> out(rhs.rows(), rhs.cols());
-    std::transform(
-        lhs.begin(), lhs.end(),
-        rhs.begin(),
-        out.begin(),
-        [] (const auto& a, const auto& b)
-        {
-            return a + b;
-        }
-    );
-    return out;
-}
-
-// // Matrix Subtraction
-template <typename T>
-Matrix<T> operator-(const Matrix<T>& lhs, const Matrix<T>& rhs)
-{
-    if (incompatibleDims(lhs, rhs))
-    {
-        throw std::invalid_argument("Matrix dimensions incompatible for subtraction.");
-    }
-    Matrix<T> out(rhs.rows(), rhs.cols());
-    std::transform(
-        lhs.begin(), lhs.end(),
-        rhs.begin(),
-        out.begin(),
-        [] (const auto& a, const auto& b)
-        {
-            return a - b;
-        }
-    );
-    return out;
-}
-
-// // Matrix Multiplication
-template <typename T>
-Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs)
-{
-    if (incompatibleDims(lhs, rhs, true))
-    {
-        throw std::invalid_argument("Matrix dimensions incompatible for multiplication.");
-    }
-    Matrix<T> out(lhs.rows(), rhs.cols());
-
-    // For each element in out:
-    // // Compute i, j of the output matrix
-    // // Dot lhs[i, :] with rhs[:, j]
-    using size_type = Matrix<T>::size_type;
-    size_type ridx {0};
-    size_type cidx {0};
-    size_type length { out.length() };
-    size_type inner { lhs.cols() };
-    T sum { }; // Should zero initialize
-    for (size_type l {0}; l < length; ++l)
-    {
-        ridx = out.ridx(l);
-        cidx = out.cidx(l);
-        sum = T{};
-        for (size_type i {0}; i < inner; ++i)
-        {
-            sum += lhs[ridx, i] * rhs[i, cidx];
-        }
-        out[ridx, cidx] = sum;
-    }
-    return out;
-}
-
-// // Scalar Multiplication
-template <typename T>
-Matrix<T> operator*(T v, const Matrix<T>& rhs)
-{
-    Matrix<T> out(rhs.rows(), rhs.cols());
-    std::transform(
-        rhs.begin(), rhs.end(),
-        out.begin(),
-        [v] (const auto& a)
-        {
-            return a*v;
-        }
-    );
-    return out;
-}
-template <typename T>
-Matrix<T> operator*(const Matrix<T>& lhs, T v) { return operator*(v, lhs); }
-
-// // Scalar Division
-template <typename T>
-Matrix<T> operator/(const Matrix<T>& lhs, T v)
-{
-    if (v == T())
-    {
-        throw std::invalid_argument("Division by zero not allowed.");
-    }
-    Matrix<T> out(lhs.rows(), lhs.cols());
-    std::transform(
-        lhs.begin(), lhs.end(),
-        out.begin(),
-        [v] (const auto& a)
-        {
-            return a/v;
-        }
-    );
-    return out;
-}
-
-// // Scalar Addition
-template <typename T>
-Matrix<T> operator+(T v, const Matrix<T>& rhs)
-{
-    Matrix<T> out(rhs.rows(), rhs.cols());
-    std::transform(
-        rhs.begin(), rhs.end(),
-        out.begin(),
-        [v] (const auto& a)
-        {
-            return a+v;
-        }
-    );
-    return out;
-}
-template <typename T>
-Matrix<T> operator+(const Matrix<T>& lhs, T v) { return operator+(v, lhs); }
-
-// // Scalar Subtraction
-template <typename T>
-Matrix<T> operator-(T v, const Matrix<T>& rhs) { return operator+(v, -rhs); }
-template <typename T>
-Matrix<T> operator-(const Matrix<T>& lhs, T v) { return operator+(-v, lhs); }
 
 //==============================================================================
 // NON MEMBER / NON FRIEND UTILITIES

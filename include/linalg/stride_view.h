@@ -6,6 +6,9 @@
 namespace linalg {
 
 template <typename T>
+class Matrix;
+
+template <typename T>
 class StrideIterator
 {
 public:
@@ -71,6 +74,45 @@ private:
     T* m_ptr {nullptr};
     size_type m_stride {};
     size_type m_count {};
+};
+
+template <typename T>
+class MatrixView
+{
+public:
+    using size_type = linalg::Matrix<T>::size_type;
+
+    // RAII
+    MatrixView(T* ptr, size_type rows, size_type cols, size_type row_stride, size_type col_stride)
+        : m_ptr { ptr }
+        , m_rows { rows }
+        , m_cols { cols }
+        , m_row_stride { row_stride }
+        , m_col_stride { col_stride }
+    {}
+    MatrixView(linalg::Matrix<T>& mat)
+        : MatrixView(mat.begin(), mat.rows(), mat.cols(), mat.cols(), 1)
+    {}
+
+    // General
+    size_type rows() const { return m_rows; }
+    size_type cols() const { return m_cols; }
+    size_type ridx(size_type lidx) const { return lidx / m_cols; }
+    size_type cidx(size_type lidx) const { return lidx % m_cols; }
+    size_type length() const { return m_rows*m_cols; }
+
+    // Access Operators
+    T& operator[](size_type i, size_type j) { return m_ptr[i * m_row_stride + j * m_col_stride]; }
+    const T& operator[](size_type i, size_type j) const { return m_ptr[i * m_row_stride + j * m_col_stride]; }
+    T& operator[](size_type l) { return operator[](ridx(l), cidx(l)); }
+    const T& operator[](size_type l) const { return operator[](ridx(l), cidx(l)); }
+
+private:
+    T* m_ptr {nullptr};
+    size_type m_rows {};
+    size_type m_cols {};
+    size_type m_row_stride {};
+    size_type m_col_stride {};
 };
 
 }

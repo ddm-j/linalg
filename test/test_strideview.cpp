@@ -5,6 +5,9 @@
 using linalg::StrideIterator;
 using linalg::StrideView;
 
+template class StrideIterator<int>;
+template class StrideView<int>;
+
 //==============================================================================
 // STRIDE ITERATOR
 //==============================================================================

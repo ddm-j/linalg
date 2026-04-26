@@ -4,6 +4,7 @@
 #include <utility>
 #include <algorithm>
 #include <exception>
+#include <linalg/errors.h>
 #include <linalg/Matrix.h>
 #include <linalg/decomposition.h>
 
@@ -20,7 +21,7 @@ Matrix<T> forward_sub(const Matrix<T>& L, const Matrix<T>& b)
 
     // Ensure Lower Tri
     if (!is_lowertri(L))
-        throw std::invalid_argument("Matrix L is not lower triangular");
+        throw linalg::NonLowerTriangular("forward_sub(): Matrix L is not lower triangular");
 
     // Solution Vector
     Matrix<T> y(rows, 1);
@@ -47,7 +48,7 @@ Matrix<T> backward_sub(const Matrix<T>& U, const Matrix<T>& y)
 
     // Ensure Upper Tri
     if (!is_uppertri(U))
-        throw std::invalid_argument("Matrix U is not upper triangular");
+        throw linalg::NonUpperTriangular("backward_sub(): Matrix U is not upper triangular");
 
     // Solution Vector
     Matrix<T> x (rows, 1);
@@ -76,11 +77,11 @@ Matrix<T> solve_lu(const Matrix<T>& A, const Matrix<T>& b)
 
     // Size Checking
     if (rows != cols)
-        throw std::invalid_argument("Matrix A must be square.");
+        throw linalg::ShapeError("solve_lu(): Matrix A must be square.");
     if (cols != b.rows())
-        throw std::invalid_argument("Matrix b must have same number of rows as A has columns.");
+        throw linalg::ShapeError("solve_lu(): Matrix b must have same number of rows as A has columns.");
     if (b.cols() > 1)
-        throw std::invalid_argument("Matrix b cannot have more than one columns");
+        throw linalg::ShapeError("solve_lu(): Matrix b cannot have more than one columns");
 
     // LU Decomp
     auto [ P, L, U ] { linalg::decomposition::lu(A) };

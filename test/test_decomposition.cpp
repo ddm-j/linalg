@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstddef>
+#include <linalg/errors.h>
 #include <linalg/Matrix.h>
 #include <linalg/decomposition.h>
 #include <gtest/gtest.h>
@@ -115,5 +116,62 @@ TEST(LU, SingularMatrix)
         { 2, 4, 6 },
         { 1, 1, 1 }
     };
-    EXPECT_THROW(lu(singular), std::runtime_error);
+    EXPECT_THROW(lu(singular), linalg::Singular);
+}
+
+//==============================================================================
+// Cholesky Decomposition
+//==============================================================================
+TEST(Cholesky, NonSquare)
+{
+    Matrix<double> rect {
+        { 1, 2 },
+        { 2, 4 },
+        { 1, 1 }
+    };
+    EXPECT_THROW(cholesky(rect), linalg::ShapeError);
+}
+
+TEST(Cholesky, NonSymmetric)
+{
+    Matrix<double> nonsym {
+        { 1, 0, 1 },
+        { 0, 1, 0 },
+        { 0, 0, 1 }
+    };
+    EXPECT_THROW(cholesky(nonsym), linalg::NonSymmetric);
+}
+
+TEST(Cholesky, Indefinite)
+{
+    Matrix<double> indef {
+        { 4, 2, 2 },
+        { 2, 2, 1 },
+        { 2, 1,-5 }
+    };
+    EXPECT_THROW(cholesky(indef), linalg::Indefinite);
+}
+
+TEST(Cholesky, Singular)
+{
+    Matrix<double> sing {
+        { 1, 1, 0 },
+        { 1, 1, 0 },
+        { 0, 0, 1 }
+    };
+    EXPECT_THROW(cholesky(sing), linalg::Singular);
+}
+
+TEST(Cholesky, IsCorrect)
+{
+    Matrix<double> A {
+        {6, 3, 4, 8},
+        {3, 6, 5, 1},
+        {4, 5,10, 7},
+        {8, 1, 7,25}
+    };
+    auto L { cholesky(A) };
+
+    // Correct Result
+    ASSERT_TRUE(A == L*L.transpose()) << "Cholesky decomposition does not produce correct result";
 }

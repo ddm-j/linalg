@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <climits>
+#include <linalg/errors.h>
 #include <linalg/stride_view.h>
 #include <linalg/Matrix.h>
 #include <linalg/solvers.h>
@@ -37,7 +38,7 @@ TEST(ForwardSub, NonLowerTriThrows)
         { 1, 2, 3 }
     };
     Matrix<double> b(3, 1, {1, 2, 3});
-    EXPECT_THROW((forward_sub(A, b)), std::invalid_argument);
+    EXPECT_THROW((forward_sub(A, b)), linalg::NonLowerTriangular);
 }
 
 TEST(ForwardSub, IsCorrect)
@@ -70,7 +71,7 @@ TEST(BackwardSub, NonUpperTriThrows)
         { 1, 0, 3 }
     };
     Matrix<double> b(3, 1, {1, 2, 3});
-    EXPECT_THROW((backward_sub(A, b)), std::invalid_argument);
+    EXPECT_THROW((backward_sub(A, b)), linalg::NonUpperTriangular);
 }
 
 TEST(BackwardSub, IsCorrect)
@@ -102,7 +103,7 @@ TEST(LUSolver, NonSquareMatrixThrows)
         { 1, 5, 1 },
     };
     Matrix<double> b(3, 1, {1, 2, 3});
-    EXPECT_THROW((solve_lu(A, b)), std::invalid_argument);
+    EXPECT_THROW((solve_lu(A, b)), linalg::ShapeError);
 }
 
 TEST(LUSolver, VectorLengthMismatchThrows)
@@ -113,7 +114,7 @@ TEST(LUSolver, VectorLengthMismatchThrows)
         { 1, 2, 3 }
     };
     Matrix<double> b(4, 1, {1, 2, 3, 4});
-    EXPECT_THROW((solve_lu(A, b)), std::invalid_argument);
+    EXPECT_THROW((solve_lu(A, b)), linalg::ShapeError);
 }
 
 TEST(LUSolver, VectorIsMatrixThrows)
@@ -124,7 +125,7 @@ TEST(LUSolver, VectorIsMatrixThrows)
         { 1, 2, 3 }
     };
     Matrix<double> b(3, 2, {1, 2, 3, 4, 5, 6});
-    EXPECT_THROW((solve_lu(A, b)), std::invalid_argument);
+    EXPECT_THROW((solve_lu(A, b)), linalg::ShapeError);
 }
 
 TEST(LUSolver, NoPivot)
@@ -171,7 +172,7 @@ TEST(LUSolver, Singular)
         { 1, 1, 1 }
     };
     Matrix<double> x(3, 1, {1, 2, 3});
-    EXPECT_THROW((solve_lu(A3, A3*x)), std::runtime_error);
+    EXPECT_THROW((solve_lu(A3, A3*x)), linalg::Singular);
 }
 
 TEST(LUSolver, Identity)

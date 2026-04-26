@@ -5,6 +5,10 @@
 
 using linalg::Matrix;
 
+// Insantiate for Coverage
+template class Matrix<int>;
+template class Matrix<double>;
+
 //==============================================================================
 // CONSTRUCTION
 //==============================================================================
