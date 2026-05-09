@@ -70,7 +70,6 @@ std::tuple<Matrix<typename Matrix<T>::size_type>, Matrix<T>, Matrix<T>> lu(const
             {
                 U[i, j] -= f*U[d, j];
             }
-            std::cout << "\n";
         }
     }
     return std::tuple { P, L, U };

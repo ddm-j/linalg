@@ -5,6 +5,7 @@ project(linalg)
 # Options
 option(LINALG_BUILD_TEST "Build/run the tests" OFF)
 option(LINALG_BUILD_EXAMPLES "Build the examples" OFF)
+option(LINALG_BUILD_BENCH "Build the benchmarks" OFF)
 
 # Directories
 if (LINALG_BUILD_TEST)
@@ -12,6 +13,9 @@ if (LINALG_BUILD_TEST)
 endif()
 if (LINALG_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+if (LINALG_BUILD_BENCH)
+    add_subdirectory(benchmarks)
 endif()
 add_subdirectory(include)
 

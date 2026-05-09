@@ -9,7 +9,17 @@
             "CMAKE_BUILD_TYPE": "Debug",
             "LINALG_BUILD_TEST": "ON",
             "LINALG_BUILD_EXAMPLES": "ON",
+            "LINALG_BUILD_BENCH": "ON",
             "ENABLE_COVERAGE": "ON"
+        }
+    },
+    {
+        "name": "Release",
+        "displayName": "Release",
+        "binaryDir": "${sourceDir}/build",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
+            "LINALG_BUILD_BENCH": "ON"
         }
     }
   ]

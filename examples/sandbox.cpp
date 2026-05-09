@@ -9,30 +9,15 @@
 int main()
 {
     Matrix<double> A {
-        {6, 3, 4, 8},
-        {3, 6, 5, 1},
-        {4, 5,10, 7},
-        {8, 1, 7,25}
+        {6, 3, 4, 8, 10, -1, 2},
+        {3, 6, 5, 1, 12, -5, 3},
+        {4, 5,10, 7, 13, -9, -1},
+        {8, 1, 7,25, 2, -2, -4}
     };
 
-    // linalg::MatrixView<double> view { A }; 
+    Matrix<double> B { A.transpose() };
 
-    linalg::MatrixView<double> view(A.begin(), A.cols(), A.rows(), 1, A.cols()); 
-    Matrix<double> B { view };
-    auto C {A * view};
-    std::cout << A << "\n\n";
-    std::cout << B << "\n\n";
-    std::cout << C << "\n\n";
+    auto C { A*B };
 
-    // for (Matrix<double>::size_type i {0}; i < A.length(); ++i)
-    // {
-    //     std::cout << std::format("i={} -- {}, {}\n",i,A[i],view[i]);
-    // }
-
-    // auto L { linalg::decomposition::cholesky(A) };
-    // auto Lt { L.transpose() };
-    // std::cout << L << "\n\n";
-    // std::cout << Lt << "\n\n";
-    // std::cout << L * Lt << "\n\n";
     return 0;
 }
