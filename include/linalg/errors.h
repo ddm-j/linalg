@@ -1,5 +1,5 @@
-#ifndef ERRORS_H
-#define ERRORS_H
+#ifndef LINALG_ERRORS_H
+#define LINALG_ERRORS_H
 
 #include <stdexcept>
 
@@ -64,4 +64,4 @@ public:
 
 }
 
-#endif // ERRORS_H
+#endif // LINALG_ERRORS_H

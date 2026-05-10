@@ -1,5 +1,5 @@
-#ifndef SOLVERS_H
-#define SOLVERS_H
+#ifndef LINALG_SOLVERS_H
+#define LINALG_SOLVERS_H
 
 #include <utility>
 #include <algorithm>
@@ -8,9 +8,9 @@
 #include <linalg/Matrix.h>
 #include <linalg/decomposition.h>
 
-using linalg::Matrix;
-
 namespace linalg::solvers {
+
+using linalg::Matrix;
 
 template <typename T>
 Matrix<T> forward_sub(const Matrix<T>& L, const Matrix<T>& b)
@@ -133,4 +133,4 @@ Matrix<T> solve_cholesky(const Matrix<T>& A, const Matrix<T>& b)
 
 }
 
-#endif // SOLVERS_H
+#endif // LINALG_SOLVERS_H

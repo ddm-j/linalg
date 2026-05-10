@@ -7,6 +7,8 @@
 
 int main()
 {
+    using linalg::Matrix;
+
     // Matrix Class
     // // Nested Initializer List
     Matrix<int> A {{1,2},{3,4}};

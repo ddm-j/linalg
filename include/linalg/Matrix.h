@@ -1,5 +1,5 @@
-#ifndef MATRIX_H
-#define MATRIX_H
+#ifndef LINALG_MATRIX_H
+#define LINALG_MATRIX_H
 
 #include <cstddef>
 #include <memory>
@@ -575,4 +575,4 @@ bool is_uppertri(const Matrix<T>& A, int fac = 100)
 
 } // end namespace linalg
 
-#endif // MATRIX_H
+#endif // LINALG_MATRIX_H

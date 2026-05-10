@@ -1,5 +1,5 @@
-#ifndef STRIDE_VIEW_H
-#define STRIDE_VIEW_H
+#ifndef LINALG_STRIDE_VIEW_H
+#define LINALG_STRIDE_VIEW_H
 
 #include <compare>
 
@@ -117,4 +117,4 @@ private:
 
 }
 
-#endif // STRIDE_VIEW_H
+#endif // LINALG_STRIDE_VIEW_H

@@ -1,5 +1,5 @@
-#ifndef DECOMPOSITION_H
-#define DECOMPOSITION_H
+#ifndef LINALG_DECOMPOSITION_H
+#define LINALG_DECOMPOSITION_H
 
 #include <utility>
 #include <algorithm>
@@ -10,9 +10,10 @@
 #include <linalg/errors.h>
 #include <linalg/Matrix.h>
 
-using linalg::Matrix;
 
 namespace linalg::decomposition {
+
+using linalg::Matrix;
 
 template <typename T>
 std::tuple<Matrix<typename Matrix<T>::size_type>, Matrix<T>, Matrix<T>> lu(const Matrix<T>& A, int fac = 100)
@@ -125,4 +126,4 @@ Matrix<T> cholesky(const Matrix<T>& A, int fac = 10)
 }
 }
 
-#endif // DECOMPOSITION_H
+#endif // LINALG_DECOMPOSITION_H
