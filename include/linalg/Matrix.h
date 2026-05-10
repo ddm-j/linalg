@@ -16,13 +16,30 @@
 namespace linalg {
 
 //==============================================================================
+// OSTREAM GUARD
+//==============================================================================
+class IosFlagSaver {
+public:
+    explicit IosFlagSaver(std::ostream& os) : os(os), flags(os.flags()) {}
+    ~IosFlagSaver() { os.flags(flags); }
+    
+    // Prevent copying to avoid multiple restorations
+    IosFlagSaver(const IosFlagSaver&) = delete;
+    IosFlagSaver& operator=(const IosFlagSaver&) = delete;
+
+private:
+    std::ostream& os;
+    std::ios_base::fmtflags flags;
+};
+
+//==============================================================================
 // FORWARD DECLARACTIONS
 //==============================================================================
 template <typename T>
 class Matrix;
 
 template <typename T>
-bool incompatibleDims(const Matrix<T>& a, const Matrix<T>& b, bool mult = false);
+bool differentDims(const Matrix<T>& a, const Matrix<T>& b);
 
 //==============================================================================
 // CLASS DEFINITION
@@ -41,9 +58,9 @@ public:
     Matrix(std::initializer_list<std::initializer_list<T>> list);
     Matrix(size_type rows, size_type cols, std::initializer_list<T> list);
     template <typename U>
-    Matrix(const MatrixView<U>& view); // Allow conversion from view
+    explicit Matrix(const MatrixView<U>& view); // Allow conversion from view
     // // Destructor
-    ~Matrix();
+    ~Matrix() = default;
     // // Copy Constructor
     Matrix(const Matrix<T>& mat);
     // // Copy Assignment Operator
@@ -118,7 +135,7 @@ public:
     // // Matrix Addition
     friend Matrix<T> operator+(const Matrix<T>& lhs, const Matrix<T>& rhs)
     {
-        if (incompatibleDims(lhs, rhs))
+        if (differentDims(lhs, rhs))
         {
             throw std::invalid_argument("Matrix dimensions incompatible for addition.");
         }
@@ -138,7 +155,7 @@ public:
     // // Matrix Subtraction
     friend Matrix<T> operator-(const Matrix<T>& lhs, const Matrix<T>& rhs)
     {
-        if (incompatibleDims(lhs, rhs))
+        if (differentDims(lhs, rhs))
         {
             throw std::invalid_argument("Matrix dimensions incompatible for subtraction.");
         }
@@ -190,7 +207,7 @@ public:
     // Matrix Multiplication (Blocked)
     friend Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs)
     {
-        if (incompatibleDims(lhs, rhs, true))
+        if (lhs.cols() != rhs.rows())
         {
             throw std::invalid_argument("Matrix dimensions incompatible for multiplication.");
         }
@@ -297,11 +314,6 @@ Matrix<T>::Matrix(size_type rows, size_type cols)
     , m_length { rows*cols }
     , m_rows { rows }
     , m_cols { cols }
-{}
-
-// // Destructor
-template <typename T>
-Matrix<T>::~Matrix()
 {}
 
 // // Copy Constructor
@@ -450,7 +462,7 @@ Matrix<T> Matrix<T>::eye(size_type rows, size_type cols)
 template <typename T>
 Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& rhs)
 {
-    if (incompatibleDims(*this, rhs))
+    if (differentDims(*this, rhs))
     {
         throw std::invalid_argument("Matrix dimensions incompatible for addition.");
     }
@@ -469,7 +481,7 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& rhs)
 template <typename T>
 Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& rhs)
 {
-    if (incompatibleDims(*this, rhs))
+    if (differentDims(*this, rhs))
     {
         throw std::invalid_argument("Matrix dimensions incompatible for subtraction.");
     }
@@ -487,16 +499,16 @@ Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& rhs)
 
 // Utility
 template <typename T>
-bool incompatibleDims(const Matrix<T>& a, const Matrix<T>& b, bool mult)
+bool differentDims(const Matrix<T>& a, const Matrix<T>& b)
 { 
-    if (mult)
-        return (a.cols() != b.rows());
     return (a.rows() != b.rows()) || (a.cols() != b.cols()); 
 }
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Matrix<T>& mat)
 {
+    IosFlagSaver guard(out);
+
     using size_type = Matrix<T>::size_type;
     out << std::fixed << std::setprecision(3);
 

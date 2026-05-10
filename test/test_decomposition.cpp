@@ -172,7 +172,7 @@ TEST(Cholesky, IsCorrect)
         {8, 1, 7,25}
     };
     auto L { cholesky(A) };
-    auto A_t { L * L.transpose() };
+    auto A_t { L * Matrix<double>(L.transpose()) };
 
     double eps { 10 * std::numeric_limits<double>::epsilon() };
 

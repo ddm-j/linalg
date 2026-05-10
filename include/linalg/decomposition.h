@@ -3,9 +3,9 @@
 
 #include <utility>
 #include <algorithm>
+#include <numeric>
 #include <climits>
 #include <cmath>
-#include <cerrno>
 #include <format>
 #include <linalg/errors.h>
 #include <linalg/Matrix.h>
@@ -27,8 +27,7 @@ std::tuple<Matrix<typename Matrix<T>::size_type>, Matrix<T>, Matrix<T>> lu(const
     Matrix<T> L { Matrix<T>::eye(rows, rows) };
     Matrix<T> U { A };
     Matrix<size_type> P(rows, 1);
-    size_type n { 0 };
-    std::generate(P.begin(), P.end(), [&n](){ return n++; });
+    std::iota(P.begin(), P.end(), 0); // Fill Sequentially
 
     // Loop Down the Diagonal of U
     T f {};
@@ -88,9 +87,11 @@ Matrix<T> cholesky(const Matrix<T>& A, int fac = 10)
     // Shape Check
     if (rows != cols)
         throw linalg::ShapeError("cholesky(): Matrix is not square.");
-    if (A != A.transpose())
-        throw linalg::NonSymmetric("cholesky(): Matrix is not symmetric.");
-    
+    // Symmetry Check
+    for (size_type i {0}; i < A.rows(); ++i)
+        for (size_type j {0}; j < A.cols(); ++j)
+            if (A[i, j] != A[j, i])
+                throw linalg::NonSymmetric("cholesky(): Matrix is not symmetric.");
 
     Matrix<T> L(rows, rows);
 
@@ -102,10 +103,10 @@ Matrix<T> cholesky(const Matrix<T>& A, int fac = 10)
         errno = 0;
         for (size_type j {0}; j < k; ++j)
         {
-            tmp_sum += std::pow(L[k,j], 2);
+            tmp_sum += L[k,j] * L[k,j];
         }
         L[k,k] = std::sqrt(A[k,k] - tmp_sum);
-        if (errno == EDOM) // SQRT of negative check
+        if (A[k, k] - tmp_sum < T{0})
             throw linalg::Indefinite(std::format("cholesky(): Matrix is not positive definite, k={} diagonal.", k));
         if (std::abs(L[k,k]) < eps) // Divide by zero check
             throw linalg::Singular(std::format("cholesky(): Matrix is singular. k={} diagonal.", k));
@@ -118,7 +119,7 @@ Matrix<T> cholesky(const Matrix<T>& A, int fac = 10)
             {
                 tmp_sum += L[i,j] * L[k,j];
             }
-            L[i,k] = (1.0 / L[k,k]) * (A[i,k] - tmp_sum);
+            L[i,k] = (T{1} / L[k,k]) * (A[i,k] - tmp_sum);
         }
     }
 
