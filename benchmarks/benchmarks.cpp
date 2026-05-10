@@ -29,7 +29,8 @@ Eigen::MatrixXd to_eigen(const linalg::Matrix<double>& m)
 // Matrix Benchmarks (multiplication only)
 static void BM_Linalg_Matrix_Mul(benchmark::State& state) {
   int n = state.range(0);
-  linalg::Matrix<double> A(n, n), B(n, n);
+  linalg::Matrix<double> A { make_random(n) };
+  linalg::Matrix<double> B { make_random(n) };
   for (auto _ : state)
   {
     linalg::Matrix<double> C { A * B };
@@ -41,7 +42,8 @@ BENCHMARK(BM_Linalg_Matrix_Mul)->RangeMultiplier(2)->Range(2, 512)->Complexity(b
 
 static void BM_Eigen_Matrix_Mul(benchmark::State& state) {
   int n = state.range(0);
-  Eigen::MatrixXd A(n, n), B(n, n);
+  Eigen::MatrixXd A { to_eigen(make_random(n)) };
+  Eigen::MatrixXd B { to_eigen(make_random(n)) };
   for (auto _ : state)
   {
     Eigen::MatrixXd C { A * B };

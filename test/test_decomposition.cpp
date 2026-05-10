@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstddef>
+#include <climits>
 #include <linalg/errors.h>
 #include <linalg/Matrix.h>
 #include <linalg/decomposition.h>
@@ -171,7 +172,12 @@ TEST(Cholesky, IsCorrect)
         {8, 1, 7,25}
     };
     auto L { cholesky(A) };
+    auto A_t { L * L.transpose() };
 
-    // Correct Result
-    ASSERT_TRUE(A == L*L.transpose()) << "Cholesky decomposition does not produce correct result";
+    double eps { 10 * std::numeric_limits<double>::epsilon() };
+
+    for (auto i {0}; i < A_t.length(); ++i)
+    {
+        EXPECT_NEAR(A[i], A_t[i], eps) << "Ranges differ at i = " << i;
+    }
 }

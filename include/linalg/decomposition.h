@@ -58,7 +58,7 @@ std::tuple<Matrix<typename Matrix<T>::size_type>, Matrix<T>, Matrix<T>> lu(const
         }
 
         // Singular Matrix
-        if (abs(U[d, d]) < eps)
+        if (std::abs(U[d, d]) < eps)
             throw linalg::Singular(std::format("lu(): Matrix is singular, U[{},{}]=0",d,d));
 
         // Elimination

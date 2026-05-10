@@ -58,6 +58,5 @@ int main()
     Matrix<double> xK(4, 1, {1, 2, 3, 4});
     auto xK_sol { linalg::solvers::solve_cholesky(K, K*xK) };
 
-
     return 0;
 }

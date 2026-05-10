@@ -23,39 +23,6 @@ class Matrix;
 template <typename T>
 bool incompatibleDims(const Matrix<T>& a, const Matrix<T>& b, bool mult = false);
 
-template <typename T>
-Matrix<T> operator+(const Matrix<T>& lhs, const Matrix<T>& rhs);
-
-template <typename T>
-Matrix<T> operator-(const Matrix<T>& lhs, const Matrix<T>& rhs);
-
-template <typename T>
-Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs);
-
-template <typename T>
-Matrix<T> operator*(T v, const Matrix<T>& rhs);
-
-template <typename T>
-Matrix<T> operator*(const Matrix<T>& lhs, T v);
-
-template <typename T>
-Matrix<T> operator/(const Matrix<T>& lhs, T v);
-
-template <typename T>
-Matrix<T> operator+(T v, const Matrix<T>& rhs);
-
-template <typename T>
-Matrix<T> operator+(const Matrix<T>& lhs, T v);
-
-template <typename T>
-Matrix<T> operator-(T v, const Matrix<T>& rhs);
-
-template <typename T>
-Matrix<T> operator-(const Matrix<T>& lhs, T v);
-
-template <typename T>
-bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs);
-
 //==============================================================================
 // CLASS DEFINITION
 //==============================================================================
@@ -109,7 +76,7 @@ public:
     const T& operator[](size_type i, size_type j) const { return m_arr[i * m_cols + j]; }
     T& operator[](size_type l) { return m_arr[l]; }
     const T& operator[](size_type l) const { return m_arr[l]; }
-    Matrix<T> operator-() const { return operator*(-1, *this); }
+    Matrix<T> operator-() const { return operator*(T{-1}, *this); }
     Matrix<T>& operator+=(const Matrix<T>& rhs);
     Matrix<T>& operator-=(const Matrix<T>& rhs);
 
@@ -134,10 +101,9 @@ public:
         if (lhs.cols() != rhs.cols())
             return false;
 
-        T eps { 10 * std::numeric_limits<T>::epsilon() };
         for (auto&& [a, b] : std::views::zip(lhs, rhs))
         {
-            if (std::abs(a - b) > eps)
+            if (a != b)
                 return false;
         }
         return true;
@@ -145,7 +111,7 @@ public:
     // // Inequality
     friend bool operator!=(const Matrix<T>& lhs, const Matrix<T>& rhs)
     {
-        return !operator==(rhs, lhs);
+        return !operator==(lhs, rhs);
     }
 
     // // Matrix Addition
@@ -403,6 +369,12 @@ template <typename T>
 Matrix<T>::Matrix(std::initializer_list<T> list)
     : Matrix<T>::Matrix(1, list.size())
 {
+    // Check for Empty List
+    if (!list.begin())
+    {
+        throw std::invalid_argument("initializer list is empty.");
+    }
+
     std::copy(list.begin(), list.end(), m_arr.get());
 }
 
@@ -410,6 +382,12 @@ template <typename T>
 Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
     : Matrix<T>::Matrix(list.size(), list.begin()->size())
 {
+    // Check for Empty List
+    if (!list.begin())
+    {
+        throw std::invalid_argument("initializer list is empty.");
+    }
+
     // Check for a jagged initializer
     auto expected = list.begin()->size();
     if (

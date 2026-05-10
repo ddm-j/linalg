@@ -113,11 +113,11 @@ Matrix<T> solve_cholesky(const Matrix<T>& A, const Matrix<T>& b)
 
     // Size Checking
     if (rows != cols)
-        throw linalg::ShapeError("solve_lu(): Matrix A must be square.");
+        throw linalg::ShapeError("solve_cholesky(): Matrix A must be square.");
     if (cols != b.rows())
-        throw linalg::ShapeError("solve_lu(): Matrix b must have same number of rows as A has columns.");
+        throw linalg::ShapeError("solve_cholesky(): Matrix b must have same number of rows as A has columns.");
     if (b.cols() > 1)
-        throw linalg::ShapeError("solve_lu(): Matrix b cannot have more than one column");
+        throw linalg::ShapeError("solve_cholesky(): Matrix b cannot have more than one column");
 
     // Decompose
     auto L { linalg::decomposition::cholesky(A) };
