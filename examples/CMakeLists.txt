@@ -1,11 +1,11 @@
-add_executable(sandbox)
+add_executable(examples)
 
-target_sources(sandbox
+target_sources(examples
     PRIVATE
-        sandbox.cpp
+        examples.cpp
 )
 
-target_link_libraries(sandbox
+target_link_libraries(examples
     PRIVATE
         linalg
 )

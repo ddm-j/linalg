@@ -37,7 +37,7 @@ static void BM_Linalg_Matrix_Mul(benchmark::State& state) {
   }
   state.SetComplexityN(n);
 }
-BENCHMARK(BM_Linalg_Matrix_Mul)->RangeMultiplier(2)->Range(2, 8);
+BENCHMARK(BM_Linalg_Matrix_Mul)->RangeMultiplier(2)->Range(2, 512)->Complexity(benchmark::oNCubed);
 
 static void BM_Eigen_Matrix_Mul(benchmark::State& state) {
   int n = state.range(0);
@@ -49,7 +49,7 @@ static void BM_Eigen_Matrix_Mul(benchmark::State& state) {
   }
   state.SetComplexityN(n);
 }
-BENCHMARK(BM_Eigen_Matrix_Mul)->RangeMultiplier(2)->Range(2, 8);
+BENCHMARK(BM_Eigen_Matrix_Mul)->RangeMultiplier(2)->Range(2, 512)->Complexity(benchmark::oNCubed);
 
 // PLU Solver Benchmarks
 static void BM_Linalg_PLU(benchmark::State& state) {
