@@ -5,12 +5,25 @@ target_sources(benchmark_linalg
     benchmarks.cpp
 )
 
+target_compile_options(benchmark_linalg
+    PRIVATE
+    -Wall
+    -Weffc++
+    -Wextra
+    -Wconversion
+    -Wsign-conversion
+    -Werror
+    -Wno-maybe-uninitialized
+    -march=native
+)
+
 include(FetchContent)
 
 # Eigen
 FetchContent_Declare(
     eigen
     URL https://gitlab.com/libeigen/eigen/-/archive/5.0.1/eigen-5.0.1.zip 
+    SYSTEM
 )
 FetchContent_MakeAvailable(eigen)
 
@@ -19,6 +32,7 @@ set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   googlebench
   URL https://github.com/google/benchmark/archive/refs/tags/v1.9.5.zip
+  SYSTEM
 )
 FetchContent_MakeAvailable(googlebench)
 

@@ -8,6 +8,16 @@ target_sources(test_linalg
     test_solvers.cpp
 )
 
+target_compile_options(test_linalg
+    PRIVATE
+    -Wall
+    -Weffc++
+    -Wextra
+    -Wconversion
+    -Wsign-conversion
+    -Werror
+)
+
 if(ENABLE_COVERAGE)
     find_program(LCOV lcov REQUIRED)
     find_program(GENHTML genhtml REQUIRED)
@@ -16,6 +26,7 @@ if(ENABLE_COVERAGE)
     target_link_options(test_linalg PRIVATE --coverage)
 
     add_custom_target(coverage
+        COMMAND $<TARGET_FILE:test_linalg>
         COMMAND ${LCOV} --directory . --capture --output-file coverage.info --ignore-errors mismatch
         COMMAND ${LCOV} --remove coverage.info '/usr/*' '*/googletest/*' --output-file coverage_filtered.info --ignore-errors mismatch
         COMMAND ${GENHTML} --demangle-cpp -o coverage coverage_filtered.info
@@ -24,12 +35,11 @@ if(ENABLE_COVERAGE)
     )
 endif()
 
-target_compile_features(test_linalg PRIVATE cxx_std_17)
-
 include(FetchContent)
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
+  SYSTEM
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

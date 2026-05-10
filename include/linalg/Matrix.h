@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <numeric>
 #include <ranges>
+#include <algorithm>
 #include <linalg/stride_view.h>
 
 namespace linalg {
@@ -81,16 +82,16 @@ public:
     Matrix<T>& operator-=(const Matrix<T>& rhs);
 
     // Row View
-    StrideView<T> rowit(size_type i) { return StrideView<T>(m_arr.get() + i*m_cols, 1, m_cols); }
-    StrideView<const T> rowit(size_type i) const { return StrideView<const T>(m_arr.get() + i*m_cols, 1, m_cols); }
+    StrideView<T> rowit(size_type i) { return StrideView<T>(m_arr.get() + i*m_cols, 1, static_cast<ptr_diff>(m_cols)); }
+    StrideView<const T> rowit(size_type i) const { return StrideView<const T>(m_arr.get() + i*m_cols, 1, static_cast<ptr_diff>(m_cols)); }
 
     // Column View
-    StrideView<T> colit(size_type j) { return StrideView<T>(m_arr.get() + j, m_cols, m_rows); }
-    StrideView<const T> colit(size_type j) const { return StrideView<const T>(m_arr.get() + j, m_cols, m_rows); }
+    StrideView<T> colit(size_type j) { return StrideView<T>(m_arr.get() + j, static_cast<ptr_diff>(m_cols), static_cast<ptr_diff>(m_rows)); }
+    StrideView<const T> colit(size_type j) const { return StrideView<const T>(m_arr.get() + j, static_cast<ptr_diff>(m_cols), static_cast<ptr_diff>(m_rows)); }
 
     // Diagonal View
-    StrideView<T> diagit() { return StrideView<T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
-    StrideView<const T> diagit() const { return StrideView<const T>(m_arr.get(), m_cols + 1, std::min(m_rows, m_cols)); }
+    StrideView<T> diagit() { return StrideView<T>(m_arr.get(), static_cast<ptr_diff>(m_cols + 1), static_cast<ptr_diff>(std::min(m_rows, m_cols))); }
+    StrideView<const T> diagit() const { return StrideView<const T>(m_arr.get(), static_cast<ptr_diff>(m_cols + 1), static_cast<ptr_diff>(std::min(m_rows, m_cols))); }
 
     // Hidden Friends
     // // Equality

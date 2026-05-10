@@ -132,7 +132,6 @@ TEST(Statics, Ones)
 
 TEST(Statics, Eye)
 {
-    using size_type = Matrix<int>::size_type;
     Matrix<int> eye { Matrix<int>::eye(3, 4) };
     EXPECT_EQ((eye[0, 0]), 1);
     EXPECT_EQ((eye[1, 1]), 1);

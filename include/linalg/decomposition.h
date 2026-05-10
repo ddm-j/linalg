@@ -18,6 +18,7 @@ template <typename T>
 std::tuple<Matrix<typename Matrix<T>::size_type>, Matrix<T>, Matrix<T>> lu(const Matrix<T>& A, int fac = 100)
 {
     using size_type = Matrix<T>::size_type;
+    using diff_type = StrideView<T>::size_type;
     size_type rows { A.rows() };
     size_type cols { A.cols() };
     T eps { fac * std::numeric_limits<T>::epsilon() };
@@ -53,7 +54,7 @@ std::tuple<Matrix<typename Matrix<T>::size_type>, Matrix<T>, Matrix<T>> lu(const
             auto lr0 { L.rowit(d) };            
             auto lr1 { L.rowit(iMax) };
             std::swap_ranges(ur0.begin(), ur0.end(), ur1.begin());
-            std::swap_ranges(lr0.begin(), lr0.begin() + d , lr1.begin());
+            std::swap_ranges(lr0.begin(), lr0.begin() + static_cast<diff_type>(d) , lr1.begin());
             std::swap(P[d], P[iMax]);
         }
 

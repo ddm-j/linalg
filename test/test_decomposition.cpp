@@ -176,7 +176,7 @@ TEST(Cholesky, IsCorrect)
 
     double eps { 10 * std::numeric_limits<double>::epsilon() };
 
-    for (auto i {0}; i < A_t.length(); ++i)
+    for (Matrix<double>::size_type i {0}; i < A_t.length(); ++i)
     {
         EXPECT_NEAR(A[i], A_t[i], eps) << "Ranges differ at i = " << i;
     }
