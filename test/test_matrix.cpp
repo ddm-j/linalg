@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <climits>
+#include <iostream>
 #include <linalg/Matrix.h>
 #include <gtest/gtest.h>
 
@@ -345,6 +346,38 @@ TEST_F(Arithmetic, ScalarSubtraction)
 }
 
 //==============================================================================
+// OPERATORS
+//==============================================================================
+// Equality
+TEST(Operators, Equality)
+{
+    Matrix<int> A {{1,2},{3,4}};
+    Matrix<int> Z { A };
+    EXPECT_EQ(A, Z);
+}
+
+// Inequality
+TEST(Operators, Inequality)
+{
+    Matrix<int> A {{1,2},{3,4}};
+    Matrix<int> Z { A };
+    Z[0] = -99;
+
+    EXPECT_NE(A, Z);
+}
+
+TEST(Operators, Output)
+{
+    Matrix<int> A {{1,2},{3,4}};
+    std::ostream& os { std::cout };
+    std::ios_base::fmtflags beforeFlags { os.flags() };
+    os << A;
+    std::ios_base::fmtflags afterFlags { os.flags() };
+
+    ASSERT_EQ(beforeFlags, afterFlags) << "Ostream operator mutates state.";
+}
+
+//==============================================================================
 // VIEWS
 //==============================================================================
 class View : public testing::Test
@@ -397,6 +430,25 @@ TEST_F(View, Diagonal)
     auto vConst { D.diagit() };
     EXPECT_EQ(vConst[0], 1);
     EXPECT_EQ(vConst[1], 5);
+}
+
+TEST_F(View, Transpose)
+{
+    using size_type = Matrix<int>::size_type;
+    auto At { A.transpose() };
+    for (size_type i {0}; i < A.rows(); ++i) 
+        for (size_type j {0}; j < A.cols(); ++j) 
+            EXPECT_EQ((A[i, j]), (At[j, i]));
+}
+
+TEST_F(View, ViewConstruction)
+{
+    using size_type = Matrix<int>::size_type;
+    auto At { A.transpose() };
+    Matrix<int> Z(At);
+    for (size_type i {0}; i < A.rows(); ++i) 
+        for (size_type j {0}; j < A.cols(); ++j) 
+            EXPECT_EQ((A[i, j]), (Z[j, i]));
 }
 
 //==============================================================================

@@ -192,7 +192,7 @@ TEST(LUSolver, Identity)
 //==============================================================================
 // Cholesky Solver
 //==============================================================================
-TEST(CholeskySover, NonSquareMatrixThrows)
+TEST(CholeskySolver, NonSquareMatrixThrows)
 {
     Matrix<double> A {
         { 4, 1, 2 },
@@ -202,7 +202,7 @@ TEST(CholeskySover, NonSquareMatrixThrows)
     EXPECT_THROW((solve_cholesky(A, b)), linalg::ShapeError);
 }
 
-TEST(CholeskySover, VectorLengthMismatchThrows)
+TEST(CholeskySolver, VectorLengthMismatchThrows)
 {
     Matrix<double> A {
         { 4, 1, 2 },
@@ -213,7 +213,7 @@ TEST(CholeskySover, VectorLengthMismatchThrows)
     EXPECT_THROW((solve_cholesky(A, b)), linalg::ShapeError);
 }
 
-TEST(CholeskySover, VectorIsMatrixThrows)
+TEST(CholeskySolver, VectorIsMatrixThrows)
 {
     Matrix<double> A {
         { 4, 1, 2 },
@@ -224,7 +224,7 @@ TEST(CholeskySover, VectorIsMatrixThrows)
     EXPECT_THROW((solve_cholesky(A, b)), linalg::ShapeError);
 }
 
-TEST(CholeskySover, Identity)
+TEST(CholeskySolver, Identity)
 {
     auto I { Matrix<double>::eye(3, 3) };
     Matrix<double> b(3, 1, {1, 2, 3});
@@ -238,7 +238,7 @@ TEST(CholeskySover, Identity)
     test_ranges_equal(b.colit(0), b_res.colit(0));
 }
 
-TEST(CholeskySover, IsCorrect)
+TEST(CholeskySolver, IsCorrect)
 {
     Matrix<double> A {
         {6, 3, 4, 8},
