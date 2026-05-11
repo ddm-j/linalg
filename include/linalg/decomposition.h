@@ -100,14 +100,13 @@ Matrix<T> cholesky(const Matrix<T>& A, int fac = 10)
     {
         // On Diagonal
         tmp_sum = T{};
-        errno = 0;
         for (size_type j {0}; j < k; ++j)
         {
             tmp_sum += L[k,j] * L[k,j];
         }
-        L[k,k] = std::sqrt(A[k,k] - tmp_sum);
         if (A[k, k] - tmp_sum < T{0})
             throw linalg::Indefinite(std::format("cholesky(): Matrix is not positive definite, k={} diagonal.", k));
+        L[k,k] = std::sqrt(A[k,k] - tmp_sum);
         if (std::abs(L[k,k]) < eps) // Divide by zero check
             throw linalg::Singular(std::format("cholesky(): Matrix is singular. k={} diagonal.", k));
 

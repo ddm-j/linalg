@@ -371,10 +371,13 @@ TEST(Operators, Output)
     Matrix<int> A {{1,2},{3,4}};
     std::ostream& os { std::cout };
     std::ios_base::fmtflags beforeFlags { os.flags() };
+    std::streamsize beforePrecision { os.precision() };
     os << A;
     std::ios_base::fmtflags afterFlags { os.flags() };
+    std::streamsize afterPrecision { os.precision() };
 
     ASSERT_EQ(beforeFlags, afterFlags) << "Ostream operator mutates state.";
+    ASSERT_EQ(beforePrecision, afterPrecision) << "Ostream operator mutates precision.";
 }
 
 //==============================================================================

@@ -20,8 +20,12 @@ namespace linalg {
 //==============================================================================
 class IosFlagSaver {
 public:
-    explicit IosFlagSaver(std::ostream& os) : os(os), flags(os.flags()) {}
-    ~IosFlagSaver() { os.flags(flags); }
+    explicit IosFlagSaver(std::ostream& os) 
+        : os(os)
+        , flags(os.flags()) 
+        , precision(os.precision())
+    {}
+    ~IosFlagSaver() { os.flags(flags); os.precision(precision); }
     
     // Prevent copying to avoid multiple restorations
     IosFlagSaver(const IosFlagSaver&) = delete;
@@ -30,6 +34,7 @@ public:
 private:
     std::ostream& os;
     std::ios_base::fmtflags flags;
+    std::streamsize precision; 
 };
 
 //==============================================================================
@@ -543,7 +548,6 @@ std::ostream& operator<<(std::ostream& out, const Matrix<T>& mat)
             out << "\n";
     }
 
-    out << std::fixed;
     return out;
 }
 
