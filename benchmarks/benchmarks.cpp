@@ -97,7 +97,7 @@ static void BM_Linalg_Cholesky(benchmark::State& state) {
   linalg::Matrix<double> M { make_random(n) };
   auto x_true { linalg::Matrix<double>::ones(n, 1) };
   double eps { std::numeric_limits<double>::epsilon() };
-  auto A { M.transpose() * M + 10000*eps*linalg::Matrix<double>::eye(n, n) };
+  auto A { linalg::Matrix<double>(M.transpose()) * M + 10000*eps*linalg::Matrix<double>::eye(n, n) };
   auto b { A * x_true };
   for (auto _ : state)
   {

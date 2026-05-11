@@ -36,6 +36,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googlebench)
 
+if(LINALG_BLOCKED_MATMUL)
+    target_compile_definitions(benchmark_linalg PRIVATE BLOCKED_MATMUL_ENABLED)
+endif()
+
 target_link_libraries(benchmark_linalg
     PRIVATE
         benchmark::benchmark

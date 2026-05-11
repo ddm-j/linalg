@@ -172,38 +172,39 @@ public:
         return out;
     }
 
-    // // Matrix Multiplication (standard)
-    // friend Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs)
-    // {
-    //     if (incompatibleDims(lhs, rhs, true))
-    //     {
-    //         throw std::invalid_argument("Matrix dimensions incompatible for multiplication.");
-    //     }
-    //     Matrix<T> out(lhs.rows(), rhs.cols());
+    // Matrix Multiplication (standard)
+#ifndef BLOCKED_MATMUL_ENABLED
+    friend Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs)
+    {
+        if (lhs.cols() != rhs.rows())
+        {
+            throw std::invalid_argument("Matrix dimensions incompatible for multiplication.");
+        }
+        Matrix<T> out(lhs.rows(), rhs.cols());
 
-    //     // For each element in out:
-    //     // // Compute i, j of the output matrix
-    //     // // Dot lhs[i, :] with rhs[:, j]
-    //     using size_type = Matrix<T>::size_type;
-    //     size_type ridx {0};
-    //     size_type cidx {0};
-    //     size_type length { out.length() };
-    //     size_type inner { lhs.cols() };
-    //     T sum { }; // Should zero initialize
-    //     for (size_type l {0}; l < length; ++l)
-    //     {
-    //         ridx = out.ridx(l);
-    //         cidx = out.cidx(l);
-    //         sum = T{};
-    //         for (size_type i {0}; i < inner; ++i)
-    //         {
-    //             sum += lhs[ridx, i] * rhs[i, cidx];
-    //         }
-    //         out[ridx, cidx] = sum;
-    //     }
-    //     return out;
-    // }
-    
+        // For each element in out:
+        // // Compute i, j of the output matrix
+        // // Dot lhs[i, :] with rhs[:, j]
+        using size_type = Matrix<T>::size_type;
+        size_type ridx {0};
+        size_type cidx {0};
+        size_type length { out.length() };
+        size_type inner { lhs.cols() };
+        T sum { }; // Should zero initialize
+        for (size_type l {0}; l < length; ++l)
+        {
+            ridx = out.ridx(l);
+            cidx = out.cidx(l);
+            sum = T{};
+            for (size_type i {0}; i < inner; ++i)
+            {
+                sum += lhs[ridx, i] * rhs[i, cidx];
+            }
+            out[ridx, cidx] = sum;
+        }
+        return out;
+    }
+#else 
     // Matrix Multiplication (Blocked)
     friend Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs)
     {
@@ -239,7 +240,7 @@ public:
         }
         return out;
     }
-
+#endif
     // // Scalar Multiplication
     friend Matrix<T> operator*(T v, const Matrix<T>& rhs)
     {

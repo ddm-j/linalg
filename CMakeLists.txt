@@ -9,6 +9,7 @@ project(linalg)
 option(LINALG_BUILD_TEST "Build/run the tests" OFF)
 option(LINALG_BUILD_EXAMPLES "Build the examples" OFF)
 option(LINALG_BUILD_BENCH "Build the benchmarks" OFF)
+option(LINALG_BLOCKED_MATMUL "Use blocked matrix multiplication algorithm" ON)
 
 # Directories
 if (LINALG_BUILD_TEST)

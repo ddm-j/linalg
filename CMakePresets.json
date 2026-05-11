@@ -19,7 +19,8 @@
         "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "LINALG_BUILD_BENCH": "ON"
+            "LINALG_BUILD_BENCH": "ON",
+            "LINALG_BLOCKED_MATMUL": "ON"
         }
     }
   ]
