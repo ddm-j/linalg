@@ -51,9 +51,5 @@ target_link_libraries(test_linalg
         linalg
 )
 
-if(LINALG_BLOCKED_MATMUL)
-    target_compile_definitions(test_linalg PRIVATE BLOCKED_MATMUL_ENABLED)
-endif()
-
 include(GoogleTest)
 gtest_discover_tests(test_linalg)

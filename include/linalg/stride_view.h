@@ -90,7 +90,10 @@ public:
         , m_row_stride { row_stride }
         , m_col_stride { col_stride }
     {}
-    explicit MatrixView(linalg::Matrix<T>& mat)
+    explicit MatrixView(linalg::Matrix<T>& mat) requires (!std::is_const_v<T>)
+        : MatrixView(mat.begin(), mat.rows(), mat.cols(), mat.cols(), 1)
+    {}
+    explicit MatrixView(linalg::Matrix<std::remove_const_t<T>>& mat) requires (std::is_const_v<T>)
         : MatrixView(mat.begin(), mat.rows(), mat.cols(), mat.cols(), 1)
     {}
 

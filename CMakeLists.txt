@@ -12,6 +12,7 @@ option(LINALG_BUILD_BENCH "Build the benchmarks" OFF)
 option(LINALG_BLOCKED_MATMUL "Use blocked matrix multiplication algorithm" ON)
 
 # Directories
+add_subdirectory(include)
 if (LINALG_BUILD_TEST)
     add_subdirectory(test)
 endif()
@@ -21,4 +22,3 @@ endif()
 if (LINALG_BUILD_BENCH)
     add_subdirectory(benchmarks)
 endif()
-add_subdirectory(include)
