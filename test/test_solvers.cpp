@@ -26,6 +26,28 @@ void test_ranges_equal(const StrideView<T>& v1, const StrideView<T>& v2, int fac
     }
 }
 
+template <typename T>
+void test_matrices_approx_equal(const Matrix<T>& A, const Matrix<T>& B, T fac = T{10}, T n = T {3})
+{
+    // A = Expected Value, B = Testing Value
+    using std::abs;
+    using std::max;
+    using size_type = Matrix<T>::size_type;
+
+    // Tolerance Setup
+    T eps { std::numeric_limits<T>::epsilon() };
+    T rtol { eps * fac * n };
+    T atol { eps * fac * n * (*(std::max_element(A.begin(), A.end()))) };
+
+    ASSERT_EQ(A.rows(), B.rows()) << "Matrix A and B have different number of rows.";
+    ASSERT_EQ(A.cols(), B.cols()) << "Matrix A and B have different numer of cols.";
+    for (size_type i {}; i < A.length(); ++i)
+    {
+        EXPECT_LE(abs(A[i]-B[i]), atol + rtol * max(abs(A[i]),abs(B[i]))) << 
+                    std::format("Matrices differ at [{}, {}]", A.ridx(i), B.cidx(i));
+    }
+}
+
 
 //==============================================================================
 // Forward Sub
@@ -256,3 +278,222 @@ TEST(CholeskySolver, IsCorrect)
     // Result Check
     test_ranges_equal(x.colit(0), x_sol.colit(0));
 }
+
+//==============================================================================
+// Gauss Jordan Solver
+//==============================================================================
+TEST(GaussJordan, NonSquareThrows)
+{
+    Matrix<double> A {
+        { 2, 1, 1, 1 },
+        { 1, 3, 2, 1 },
+        { 1, 0, 0, 1 }
+    };
+    Matrix<double> B {
+        { 3, 2 },
+        { 5, 3 },
+        { 1, 0 }
+    };
+
+    // Solutions
+    EXPECT_THROW(solve_gauss_jordan(A, B), linalg::ShapeError);
+}
+
+TEST(GaussJordan, ColsAvsRowsB)
+{
+    Matrix<double> A {
+        { 2, 1, 1 },
+        { 1, 3, 2 },
+        { 1, 0, 0 }
+    };
+    Matrix<double> B {
+        { 3, 2 },
+        { 5, 3 },
+        { 1, 0 },
+        { 1, 0}
+    };
+
+    // Solutions
+    EXPECT_THROW(solve_gauss_jordan(A, B), linalg::ShapeError);
+}
+
+TEST(GaussJordan, CorrectnessOnKnown)
+{
+    Matrix<double> A {
+        { 2, 1, 1 },
+        { 1, 3, 2 },
+        { 1, 0, 0 }
+    };
+    Matrix<double> B {
+        { 3, 2 },
+        { 5, 3 },
+        { 1, 0 }
+    };
+
+    // Solutions
+    Matrix<double> A_inv_expected {
+        {  0,  0,  1 },
+        { -2,  1,  3 },
+        {  3, -1, -5 }
+    };
+
+    Matrix<double> X_expected {
+        {  1,  0 },
+        {  2, -1 },
+        { -1,  3 }
+    };
+
+    solve_gauss_jordan(A, B);
+    
+    // Tests
+    test_matrices_approx_equal(A_inv_expected, A);
+    test_matrices_approx_equal(X_expected, B);
+}
+
+TEST(GaussJordan, PivotPath)
+{
+    Matrix<double> A {
+        { 0, 1, 2 },
+        { 1, 0, 1 },
+        { 2, 1, 0 }
+    };
+    
+    Matrix<double> B {
+        { 4, 1 },
+        { 3, 3 },
+        { 2, 3 }
+    };
+    // Solutions
+    Matrix<double> A_inv_expected {
+        { -0.25,  0.5 ,  0.25 },
+        {  0.5 , -1.0 ,  0.5  },
+        {  0.25,  0.5 , -0.25 }
+    };
+    
+    Matrix<double> X_expected {
+        { 1,  2 },
+        { 0, -1 },
+        { 2,  1 }
+    };
+
+    solve_gauss_jordan(A, B);
+    
+    // Tests
+    test_matrices_approx_equal(A_inv_expected, A);
+    test_matrices_approx_equal(X_expected, B);
+}
+
+TEST(GaussJordan, RoundTripResidual)
+{
+    Matrix<double> A {
+        { 0, 1, 2 },
+        { 1, 0, 1 },
+        { 2, 1, 0 }
+    };
+    auto A_orig = A;
+
+    Matrix<double> B {
+        { 4, 1 },
+        { 3, 3 },
+        { 2, 3 }
+    };
+    auto B_orig = B;
+    Matrix<double> I { Matrix<double>::eye(3, 3) };
+
+    // Solutions
+    solve_gauss_jordan(A, B);
+    
+    // Tests
+    SCOPED_TRACE("A_orig * B == B_orig");
+    test_matrices_approx_equal(A_orig*B, B_orig);
+    SCOPED_TRACE("A_orig * A == I");
+    test_matrices_approx_equal(A_orig*A, I);
+    SCOPED_TRACE("A * A_orig == I");
+    test_matrices_approx_equal(A*A_orig, I);
+}
+
+TEST(GaussJordan, Singular)
+{
+    Matrix<double> A_sing {
+        { 1, 2, 3 },
+        { 2, 4, 6 },
+        { 1, 0, 1 }
+    };
+
+    Matrix<double> B_sing(3, 1, {1, 2, 1});
+
+    // Test
+    EXPECT_THROW(solve_gauss_jordan(A_sing, B_sing), linalg::Singular);
+}
+
+TEST(GaussJordan, NearSingular)
+{
+    Matrix<double> A_near {
+        { 1, 2, 3 },
+        { 2, 4 + 1e-16, 6 },
+        { 1, 0, 1 }
+    };
+
+    Matrix<double> B_near(3, 1, {1, 2, 1});
+
+    // Test
+    EXPECT_THROW(solve_gauss_jordan(A_near, B_near), linalg::Singular);
+}
+
+TEST(GaussJordan, Conditioning)
+{
+    // J with columns 2 and 3 nearly collinear
+    Matrix<double> JtJ {
+        { 2.0,       3.0,       3.0       },
+        { 3.0,       5.0,       5.0 - 1e-8 },
+        { 3.0,       5.0 - 1e-8, 5.0      }
+    };
+    Matrix<double> g(3, 1, {1.0, 1.0, 1.0});
+
+    const double lambda_large = 1.0;    // heavily damped
+    const double lambda_small = 1e-12;  // essentially undamped
+    Matrix<double> I {Matrix<double>::eye(3, 3) };
+
+    // Test Case 1:
+    Matrix<double> A1 { JtJ + lambda_large*I };
+    auto A1_orig = A1;
+    auto X1 = g;
+    solve_gauss_jordan(A1, X1);
+
+    SCOPED_TRACE("A1_orig * X == g");
+    test_matrices_approx_equal(A1_orig*X1, g);
+
+
+
+    // Test Case 2:
+    Matrix<double> A2 { JtJ + lambda_small*I };
+    auto A2_orig = A2;
+    auto X2 = g;
+
+    solve_gauss_jordan(A2, X2);
+
+    SCOPED_TRACE("A2_orig * X2 == g");
+    test_matrices_approx_equal(A2_orig*X2, g);
+
+    // Check Relative Values
+    double X1_norm {
+        *(std::max_element(X1.begin(), X1.end(), 
+                [](double a, double b) {
+                    return std::abs(a) > std::abs(b);
+                }
+            )
+        )
+    };
+    double X2_norm {
+        *(std::max_element(X2.begin(), X2.end(), 
+                [](double a, double b) {
+                    return std::abs(a) > std::abs(b);
+                }
+            )
+        )
+    };
+    EXPECT_GT(X2_norm / X1_norm, 1e4);
+}
+
+// 5. LM-representative conditioning
+// A small JᵀJ + λI with a genuinely ill-conditioned JᵀJ, checked at two λ values: large λ gives an accurate solve, λ→0 degrades. Documents the actual behavior you'll depend on.
