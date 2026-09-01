@@ -133,7 +133,7 @@ Matrix<T> solve_cholesky(const Matrix<T>& A, const Matrix<T>& b)
 }
 
 template <typename T>
-void solve_gauss_jordan(Matrix<T>& A, Matrix<T>& B)
+void solve_gauss_jordan(Matrix<T>& A, Matrix<T>& B, const T tol = -1.0)
 {
     using std::abs;
 
@@ -158,9 +158,12 @@ void solve_gauss_jordan(Matrix<T>& A, Matrix<T>& B)
     std::fill(ipiv.begin(), ipiv.end(), 0);
 
     // Singular Detection Tolerance
-    T eps { std::numeric_limits<T>::epsilon() };
-    T A_max { *(std::max_element(A.begin(), A.end())) };
-    T pivot_tol { static_cast<T>(n) * eps * A_max };
+    const T A_max { *(std::max_element(A.begin(), A.end(), [](T a, T b){ return std::abs(a) < std::abs(b); })) };
+    // Auto Tolerance Calculation
+    const T eps { std::numeric_limits<T>::epsilon() };
+    const T pivot_tol { (tol < 0.0)
+        ? static_cast<T>(n) * eps * A_max
+        : tol * A_max };
 
     // Main Loop
     for (i = 0; i < n; i++)
