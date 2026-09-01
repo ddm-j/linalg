@@ -133,7 +133,7 @@ Matrix<T> solve_cholesky(const Matrix<T>& A, const Matrix<T>& b)
 }
 
 template <typename T>
-void solve_gauss_jordan(Matrix<T>& A, Matrix<T>& B, const T tol = -1.0)
+void solve_gauss_jordan(Matrix<T>& A, Matrix<T>& B, const T tol = 0.0)
 {
     using std::abs;
 
